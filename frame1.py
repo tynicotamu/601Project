@@ -149,9 +149,7 @@ def load_frame2():
 
     tk.Label(botrightframe, text="Number:", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=1, column=0)
 
-    tk.Label(botrightframe, text="Race Wins", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=2, column=0)
-
-    tk.Label(botrightframe, text="# Polls", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=3, column=0)
+    tk.Label(botrightframe, text="# Pole Positions", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=3, column=0)
 
     tk.Label(botrightframe, text="Last Win", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=4, column=0)
 
