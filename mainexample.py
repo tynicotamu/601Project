@@ -59,8 +59,12 @@ def pre_process(table_name, table_records):
 
 def load_frame1():
     clear_widgets(frame2)
+
     # stack frame 1 above frame 2
+
     frame1.tkraise()
+
+
     # prevent widgets from modifying the frame
     frame1.pack_propagate(False)
 
@@ -144,7 +148,7 @@ def load_frame2():
 # initiallize app with basic settings
 root = tk.Tk()
 root.title("Recipe Picker")
-root.eval("tk::PlaceWindow . center")
+root.eval("tk::PlaceWindow . left")
 
 # place app in the center of the screen (alternative approach to root.eval())
 # x = root.winfo_screenwidth() // 2
