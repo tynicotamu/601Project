@@ -156,6 +156,27 @@ class Application(tk.Tk):
                 value = event.widget.get(index)
                 print(f"You selected item {index}: {value}")
 
+                conn = sqlite3.connect("data/f1stats.db")
+                cursor = conn.cursor()
+
+                # Execute a query to retrieve the first three rows
+                cursor.execute("SELECT alt FROM circuits WHERE name = ?", (value,))
+
+                # Fetch all the results
+                altitude = cursor.fetchone()
+                try:
+                    altitude = float(altitude[0])
+                    print(altitude)
+                    altitude_input = {f"Altitude : {altitude} meters"}
+                    altitude_input.__str__()
+                    print(altitude_input)
+                    self.circuit_label_altitude.config(text=altitude_input)
+                except sqlite3.Error as e:
+                    self.circuit_label_altitude.config(text="Altitude not available")
+
+                # Close the connection
+                conn.close()
+
                 self.circuit_label_altitude.config(text='')
 
                 self.circuit_label_country.config(text='')
@@ -200,22 +221,28 @@ class Application(tk.Tk):
         botrightframe = tk.Frame(self.frame3, bg="white", bd=5, relief=tk.SUNKEN)
         botrightframe.pack(side="top", fill=tk.X, padx=10, pady=10)
 
-        self.circuit_label_altitude = tk.Label(botrightframe, text="Altitude: ", bg="light blue", fg="black", font=("Shanti", 14))
+        self.circuit_label_altitude = tk.Label(botrightframe, text="Altitude: ", bg="light blue", fg="black",
+                                               font=("Shanti", 14))
         self.circuit_label_altitude.grid(row=0, column=0)
 
-        self.circuit_label_country = tk.Label(botrightframe, text="Country: ", bg="light blue", fg="black", font=("Shanti", 14))
+        self.circuit_label_country = tk.Label(botrightframe, text="Country: ", bg="light blue", fg="black",
+                                              font=("Shanti", 14))
         self.circuit_label_country.grid(row=1, column=0)
 
-        self.circuit_label_longitude = tk.Label(botrightframe, text="Longitude: ", bg="light blue", fg="black", font=("Shanti", 14))
+        self.circuit_label_longitude = tk.Label(botrightframe, text="Longitude: ", bg="light blue", fg="black",
+                                                font=("Shanti", 14))
         self.circuit_label_longitude.grid(row=2, column=0)
 
-        self.circuit_label_latitude = tk.Label(botrightframe, text="Latitude: ", bg="light blue", fg="black", font=("Shanti", 14))
+        self.circuit_label_latitude = tk.Label(botrightframe, text="Latitude: ", bg="light blue", fg="black",
+                                               font=("Shanti", 14))
         self.circuit_label_latitude.grid(row=3, column=0)
 
-        self.circuit_label_wiki = tk.Label(botrightframe, text="Wiki Link: ", bg="light blue", fg="black", font=("Shanti", 14))
+        self.circuit_label_wiki = tk.Label(botrightframe, text="Wiki Link: ", bg="light blue", fg="black",
+                                           font=("Shanti", 14))
         self.circuit_label_wiki.grid(row=4, column=0)
 
-        self.circuit_label_fastestlap = tk.Label(botrightframe, text="Fastest Lap: ", bg="light blue", fg="black", font=("Shanti", 14))
+        self.circuit_label_fastestlap = tk.Label(botrightframe, text="Fastest Lap: ", bg="light blue", fg="black",
+                                                 font=("Shanti", 14))
         self.circuit_label_fastestlap.grid(row=5, column=0)
 
         # 'back' button widget
