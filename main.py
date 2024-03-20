@@ -5,7 +5,6 @@ from numpy import random
 import pyglet
 from pygame import mixer
 
-
 # set colours
 bg_colour = "#FF1801"
 
@@ -61,6 +60,7 @@ def pre_process(table_name, table_records):
 
 def load_frame1():
     clear_widgets(frame2)
+    clear_widgets(frame3)
 
     # stack frame 1 above frame 2
 
@@ -109,14 +109,12 @@ def load_frame1():
         command=lambda: load_frame3()
     ).pack(side='right', pady=20, padx=25)
 
-
     tk.Button(
         frame1,
         text="Mute", font=("Ubuntu", 12), bg="#28393a", fg="white", cursor="hand2", activebackground="#badee2",
         activeforeground="black",
         command=lambda: toggle_music()
     ).pack(side='bottom', pady=20)
-
 
 
 def load_frame2():
@@ -149,46 +147,51 @@ def load_frame2():
 
     tk.Label(botrightframe, text="Number:", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=1, column=0)
 
-    tk.Label(botrightframe, text="# Pole Positions", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=3, column=0)
+    tk.Label(botrightframe, text="# Pole Positions", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=3,
+                                                                                                            column=0)
 
     tk.Label(botrightframe, text="Last Win", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=4, column=0)
 
-    tk.Label(botrightframe, text="Most Won Circuit", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=5, column=0)
+    tk.Label(botrightframe, text="Most Won Circuit", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=5,
+                                                                                                            column=0)
 
     tk.Label(botrightframe, text="Total Wins", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=6, column=0)
 
-    tk.Label(botrightframe, text="Total Podiums", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=7, column=0)
+    tk.Label(botrightframe, text="Total Podiums", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=7,
+                                                                                                         column=0)
 
     # 'back' button widget
-    tk.Button(toprightframe, text="BACK", font=("Ubuntu", 14), bg="#28393a", fg="white", cursor="hand2", activebackground="#badee2",
-        activeforeground="black", command=lambda: load_frame1()).pack(pady=20)
+    tk.Button(toprightframe, text="BACK", font=("Ubuntu", 14), bg="#28393a", fg="white", cursor="hand2",
+              activebackground="#badee2",
+              activeforeground="black", command=lambda: load_frame1()).pack(pady=20)
 
 
 def load_frame3():
+
     clear_widgets(frame1)
     # stack frame 2 above frame 1
     frame3.tkraise()
 
-    def fetch_db():
-        # connect an sqlite database
-        connection = sqlite3.connect("data/recipes.db")
-        cursor = connection.cursor()
-
-        # fetch all the table names
-        cursor.execute("SELECT * FROM sqlite_schema WHERE type='table';")
-        all_tables = cursor.fetchall()
-
-        # choose random table idx
-        idx = random.randint(0, len(all_tables) - 1)
-
-        # fetch records from table
-        table_name = all_tables[idx][1]
-        cursor.execute("SELECT * FROM " + table_name + ";")
-        table_records = cursor.fetchall()
-
-        connection.close()
-
-        return table_name, table_records
+    # def fetch_db():
+    #     # connect an sqlite database
+    #     connection = sqlite3.connect("data/recipes.db")
+    #     cursor = connection.cursor()
+    #
+    #     # fetch all the table names
+    #     cursor.execute("SELECT * FROM sqlite_schema WHERE type='table';")
+    #     all_tables = cursor.fetchall()
+    #
+    #     # choose random table idx
+    #     idx = random.randint(0, len(all_tables) - 1)
+    #
+    #     # fetch records from table
+    #     table_name = all_tables[idx][1]
+    #     cursor.execute("SELECT * FROM " + table_name + ";")
+    #     table_records = cursor.fetchall()
+    #
+    #     connection.close()
+    #
+    #     return table_name, table_records
 
     leftframe = tk.Frame(frame3, bg="white", bd=5, relief=tk.SUNKEN)
     leftframe.pack(side="left", fill="both", expand=True, padx=10, pady=10)
@@ -221,14 +224,13 @@ def load_frame3():
 
     tk.Label(botrightframe, text="Wiki Link: ", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=4, column=0)
 
-    tk.Label(botrightframe, text="Fastest Lap: ", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=5, column=0)
+    tk.Label(botrightframe, text="Fastest Lap: ", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=5,
+                                                                                                         column=0)
 
     # 'back' button widget
-    tk.Button(toprightframe, text="BACK", font=("Ubuntu", 14), bg="#28393a", fg="white", cursor="hand2", activebackground="#badee2",
-        activeforeground="black", command=lambda: load_frame1()).pack(pady=20)
-
-
-
+    tk.Button(toprightframe, text="BACK", font=("Ubuntu", 14), bg="#28393a", fg="white", cursor="hand2",
+              activebackground="#badee2",
+              activeforeground="black", command=lambda: load_frame1()).pack(pady=20)
 
 
 def toggle_music():
@@ -238,8 +240,7 @@ def toggle_music():
         mixer.music.set_volume(0.5)  # Unmute the music (restore volume)
 
 
-
-# initiallize app with basic settings
+# initialize app with basic settings
 root = tk.Tk()
 root.title("F1 Metrics")
 root.eval("tk::PlaceWindow . left")
@@ -249,9 +250,6 @@ audio_file = 'assets//F1_song.mp3'  # Change this to the path of your audio file
 mixer.music.load(audio_file)
 mixer.music.set_volume(0.4)
 mixer.music.play(-1, fade_ms=1000)
-
-
-
 
 # place app in the center of the screen (alternative approach to root.eval())
 # x = root.winfo_screenwidth() // 2
@@ -264,7 +262,7 @@ frame2 = tk.Frame(root, bg=bg_colour)
 frame3 = tk.Frame(root, bg=bg_colour)
 
 # place frame widgets in window
-for frame in (frame1, frame2,frame3):
+for frame in (frame1, frame2, frame3):
     frame.grid(row=0, column=0, sticky="nesw")
 
 # load the first frame
