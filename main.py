@@ -4,6 +4,7 @@ from pygame import mixer
 from PIL import Image, ImageTk
 import sqlite3
 import pyglet
+import webbrowser
 
 
 class Application(tk.Tk):
@@ -158,34 +159,94 @@ class Application(tk.Tk):
 
                 conn = sqlite3.connect("data/f1stats.db")
                 cursor = conn.cursor()
+                error_string = "Altitude not available"
 
-                # Execute a query to retrieve the first three rows
-                cursor.execute("SELECT alt FROM circuits WHERE name = ?", (value,))
-
-                # Fetch all the results
-                altitude = cursor.fetchone()
+                # Check if the query fetched a result
                 try:
-                    altitude = float(altitude[0])
-                    print(altitude)
-                    altitude_input = {f"Altitude : {altitude} meters"}
-                    altitude_input.__str__()
-                    print(altitude_input)
+                    # Convert the altitude to float and format the output string
+                    cursor.execute("SELECT alt FROM circuits WHERE name = ?", (value,))
+                    altitude_data = cursor.fetchone()
+                    # Load data
+                    altitude = float(altitude_data[0])
+                    altitude_input = f"Altitude: {altitude} meters"
                     self.circuit_label_altitude.config(text=altitude_input)
                 except sqlite3.Error as e:
-                    self.circuit_label_altitude.config(text="Altitude not available")
+                    # If no altitude is found, set a default message
+                    self.circuit_label_altitude.config(text=error_string)
+
+                try:
+                    # Convert the altitude to float and format the output string
+                    cursor.execute("SELECT country FROM circuits WHERE name = ?", (value,))
+                    country_data = cursor.fetchone()
+                    # Load data
+                    country_data_input = str(country_data[0])
+                    country_data_input = f"Country: {country_data_input}"
+                    self.circuit_label_country.config(text=country_data_input)
+
+                except sqlite3.Error as e:
+                    # If no altitude is found, set a default message
+                    self.circuit_label_country.config(text=error_string)
+
+                try:
+                    # Convert the altitude to float and format the output string
+                    cursor.execute("SELECT lng FROM circuits WHERE name = ?", (value,))
+                    longitude_data = cursor.fetchone()
+                    # Load data
+                    longitude = float(longitude_data[0])
+                    print('Test')
+                    print(longitude)
+                    longitude = f"Longitude: {longitude} degrees"
+                    self.circuit_label_longitude.config(text=longitude)
+
+                except sqlite3.Error as e:
+                    # If no altitude is found, set a default message
+                    self.circuit_label_country.config(text=error_string)
+
+                try:
+                    # Convert the altitude to float and format the output string
+                    cursor.execute("SELECT lat FROM circuits WHERE name = ?", (value,))
+                    latitude = cursor.fetchone()
+                    # Load data
+                    latitude = float(latitude[0])
+                    print('Test')
+                    print(latitude)
+                    latitude = f"Latitude: {latitude} degrees"
+                    self.circuit_label_latitude.config(text=latitude)
+
+                except sqlite3.Error as e:
+                    # If no altitude is found, set a default message
+                    self.circuit_label_country.config(text=error_string)
+
+                try:
+                    # Execute the query to fetch the URL
+                    cursor.execute("SELECT url FROM circuits WHERE name = ?", (value,))
+                    url_data = cursor.fetchone()
+
+                    # Check if the query fetched a result
+                    if url_data and url_data[0]:
+                        # Extract the URL from the tuple
+                        url = url_data[0]
+                        print(f'URL fetched: {url}')
+
+                        # Set the label with the URL
+                        label_text = f"Link to URL"
+                        self.circuit_label_wiki.config(text=label_text, fg="blue", cursor="hand2")
+
+                        # Bind the label to open the hyperlink when clicked
+                        self.circuit_label_wiki.bind("<Button-1>", lambda e, link=url: open_hyperlink(link))
+
+                    else:
+                        self.circuit_label_wiki.config(text="URL not available")
+
+                    def open_hyperlink(url):
+                        webbrowser.open_new(url)
+
+                except sqlite3.Error as e:
+                    # If no altitude is found, set a default message
+                    self.circuit_label_country.config(text=error_string)
 
                 # Close the connection
                 conn.close()
-
-                self.circuit_label_altitude.config(text='')
-
-                self.circuit_label_country.config(text='')
-
-                self.circuit_label_longitude.config(text='')
-
-                self.circuit_label_latitude.config(text='')
-
-                self.circuit_label_wiki.config(text='')
 
                 self.circuit_label_fastestlap.config(text='')
 
