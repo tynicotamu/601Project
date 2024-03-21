@@ -150,6 +150,10 @@ class Application(tk.Tk):
         def on_select(event):
             # Note that calling `curselection` returns a tuple of selected indices
             selected_indices = event.widget.curselection()
+
+            def open_hyperlink(url):
+                webbrowser.open_new(url)
+
             if selected_indices:  # Proceed only if something is selected
                 # Get the first selected index
                 index = selected_indices[0]
@@ -208,8 +212,6 @@ class Application(tk.Tk):
                     latitude = cursor.fetchone()
                     # Load data
                     latitude = float(latitude[0])
-                    print('Test')
-                    print(latitude)
                     latitude = f"Latitude: {latitude} degrees"
                     self.circuit_label_latitude.config(text=latitude)
 
@@ -239,32 +241,37 @@ class Application(tk.Tk):
                         self.circuit_label_wiki.config(text="URL not available")
 
                     try:
-                        # Convert the altitude to float and format the output string
-                        cursor.execute("SELECT lat FROM circuits WHERE name = ?", (value,))
-                        latitude = cursor.fetchone()
-                        # Load data
-                        latitude = float(latitude[0])
-                        print('Test')
-                        print(latitude)
-                        latitude = f"Latitude: {latitude} degrees"
-                        self.circuit_label_fastestlap.config(text='')
+                        # Query to get the fastest lap time for a given circuit name from the new table or view
+                        cursor.execute("""
+                            SELECT fastest_lap_time
+                            FROM fastest_lap_per_circuit
+                            WHERE circuit_name = ?
+                        """, (value,))
+
+                        # Fetch the result
+                        result = cursor.fetchone()
+                        print("Fast Test")
+                        print(result)
+                        # If a result is found, extract the lap time and update the label
+                        if result and result[0] is not None:
+                            fastest_lap_time = result[0]
+                            print(f"Fastest Lap Time: {fastest_lap_time}")
+                            fastest_lap_time = round(fastest_lap_time / 1000, 2)
+                            self.circuit_label_fastestlap.config(text=f"Fastest Lap Time: {fastest_lap_time} seconds")
+                        else:
+                            self.circuit_label_fastestlap.config(text="No fastest lap time available")
+                    except sqlite3.Error as e:
+                        error_string = f"Database error: {e}"
+                        print(error_string)
+                        self.circuit_label_fastestlap.config(text=error_string)
 
                     except sqlite3.Error as e:
                         # If no altitude is found, set a default message
                         self.circuit_label_country.config(text=error_string)
 
-
-                    def open_hyperlink(url):
-                        webbrowser.open_new(url)
-
-                except sqlite3.Error as e:
-                    # If no altitude is found, set a default message
-                    self.circuit_label_country.config(text=error_string)
-
-                # Close the connection
-                conn.close()
-
-
+                finally:
+                    # Close the connection
+                    conn.close()
 
         # Create the left frame
         leftframe = tk.Frame(self.frame3, bg="white", bd=5, relief=tk.SUNKEN)
