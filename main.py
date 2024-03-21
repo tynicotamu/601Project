@@ -69,7 +69,6 @@ class Application(tk.Tk):
                   activebackground="#badee2", activeforeground="black", command=self.toggle_music).pack(side='bottom',
                                                                                                         pady=20)
 
-    # Implement these methods according to your requirements
     def load_frame2(self):
         self.clear_widgets(self.frame1)
         # stack frame 2 above frame 1
@@ -95,26 +94,35 @@ class Application(tk.Tk):
                   activebackground="#badee2", activeforeground="black").pack(side='top', pady=10, padx=50)
 
         botrightframe = tk.Frame(self.frame2, bg="white", bd=5, relief=tk.SUNKEN)
-        botrightframe.pack(side="top", fill=tk.X, padx=10, pady=10)
+        botrightframe.pack(side="top", fill='both', expand=1, padx=10, pady=10)
 
-        tk.Label(botrightframe, text="Nationality:", bg="white", fg="black", font=("Shanti", 14)).grid(row=0,
-                                                                                                            column=0)
+        self.NatLabel = tk.Label(botrightframe, text="Nationality:", bg="white",
+                                fg="black", font=("Shanti", 14))
+        self.NatLabel.grid(row=0, column=0, sticky='w')
 
-        tk.Label(botrightframe, text="Number:", bg="white", fg="black", font=("Shanti", 14)).grid(row=1, column=0)
+        self.NumLabel = tk.Label(botrightframe, text="Number:", bg="white",
+                                fg="black", font=("Shanti", 14))
+        self.NumLabel.grid(row=1, column=0, sticky='w')
 
-        tk.Label(botrightframe, text="# Pole Positions", bg="white", fg="black", font=("Shanti", 14)).grid(row=3,
-                                                                                                                column=0)
+        self.PolesLabel = tk.Label(botrightframe, text="# Pole Positions:", bg="white",
+                                fg="black", font=("Shanti", 14))
+        self.PolesLabel.grid(row=3, column=0, sticky='w')
 
-        tk.Label(botrightframe, text="Last Win", bg="white", fg="black", font=("Shanti", 14)).grid(row=4, column=0)
+        self.LastWinLabel = tk.Label(botrightframe, text="Last Win:", bg="white",
+                                fg="black", font=("Shanti", 14))
+        self.LastWinLabel.grid(row=4, column=0, sticky='w')
 
-        tk.Label(botrightframe, text="Most Won Circuit", bg="white", fg="black", font=("Shanti", 14)).grid(row=5,
-                                                                                                                column=0)
+        self.MostWonLabel = tk.Label(botrightframe, text="Most Won Circuit:", bg="white",
+                                fg="black", font=("Shanti", 14))
+        self.MostWonLabel.grid(row=5, column=0, sticky='w')
 
-        tk.Label(botrightframe, text="Total Wins", bg="white", fg="black", font=("Shanti", 14)).grid(row=6,
-                                                                                                          column=0)
+        self.TotalWinsLabel = tk.Label(botrightframe, text="Total Wins:", bg="white",
+                                fg="black", font=("Shanti", 14))
+        self.TotalWinsLabel.grid(row=6, column=0, sticky='w')
 
-        tk.Label(botrightframe, text="Total Podiums", bg="white", fg="black", font=("Shanti", 14)).grid(row=7,
-                                                                                                             column=0)
+        self.PodLabel = tk.Label(botrightframe, text="Total Podiums:", bg="white",
+                                fg="black", justify='left', font=("Shanti", 14))
+        self.PodLabel.grid(row=7, column=0, sticky='w')
 
         # 'back' button widget
         tk.Button(toprightframe, text="BACK", font=("Ubuntu", 14), bg="#28393a", fg="white", cursor="hand2",
