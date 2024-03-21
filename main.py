@@ -238,6 +238,22 @@ class Application(tk.Tk):
                     else:
                         self.circuit_label_wiki.config(text="URL not available")
 
+                    try:
+                        # Convert the altitude to float and format the output string
+                        cursor.execute("SELECT lat FROM circuits WHERE name = ?", (value,))
+                        latitude = cursor.fetchone()
+                        # Load data
+                        latitude = float(latitude[0])
+                        print('Test')
+                        print(latitude)
+                        latitude = f"Latitude: {latitude} degrees"
+                        self.circuit_label_fastestlap.config(text='')
+
+                    except sqlite3.Error as e:
+                        # If no altitude is found, set a default message
+                        self.circuit_label_country.config(text=error_string)
+
+
                     def open_hyperlink(url):
                         webbrowser.open_new(url)
 
@@ -248,7 +264,7 @@ class Application(tk.Tk):
                 # Close the connection
                 conn.close()
 
-                self.circuit_label_fastestlap.config(text='')
+
 
         # Create the left frame
         leftframe = tk.Frame(self.frame3, bg="white", bd=5, relief=tk.SUNKEN)
