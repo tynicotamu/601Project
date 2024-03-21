@@ -78,7 +78,7 @@ class Application(tk.Tk):
         leftframe = tk.Frame(self.frame2, bg="white", bd=5, relief=tk.SUNKEN)
         leftframe.pack(side="left", fill="both", expand=True, padx=10, pady=10)
 
-        (tk.Label(leftframe, text="Please Make A Selection", bg="light blue", fg="black", font=("Shanti", 14)).
+        (tk.Label(leftframe, text="Please Make A Selection", bg="white", fg="black", font=("Shanti", 14)).
          pack(side='top', pady=20))
 
         self.scrollbar = tk.Scrollbar(leftframe)
@@ -97,23 +97,23 @@ class Application(tk.Tk):
         botrightframe = tk.Frame(self.frame2, bg="white", bd=5, relief=tk.SUNKEN)
         botrightframe.pack(side="top", fill=tk.X, padx=10, pady=10)
 
-        tk.Label(botrightframe, text="Nationality:", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=0,
+        tk.Label(botrightframe, text="Nationality:", bg="white", fg="black", font=("Shanti", 14)).grid(row=0,
                                                                                                             column=0)
 
-        tk.Label(botrightframe, text="Number:", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=1, column=0)
+        tk.Label(botrightframe, text="Number:", bg="white", fg="black", font=("Shanti", 14)).grid(row=1, column=0)
 
-        tk.Label(botrightframe, text="# Pole Positions", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=3,
+        tk.Label(botrightframe, text="# Pole Positions", bg="white", fg="black", font=("Shanti", 14)).grid(row=3,
                                                                                                                 column=0)
 
-        tk.Label(botrightframe, text="Last Win", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=4, column=0)
+        tk.Label(botrightframe, text="Last Win", bg="white", fg="black", font=("Shanti", 14)).grid(row=4, column=0)
 
-        tk.Label(botrightframe, text="Most Won Circuit", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=5,
+        tk.Label(botrightframe, text="Most Won Circuit", bg="white", fg="black", font=("Shanti", 14)).grid(row=5,
                                                                                                                 column=0)
 
-        tk.Label(botrightframe, text="Total Wins", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=6,
+        tk.Label(botrightframe, text="Total Wins", bg="white", fg="black", font=("Shanti", 14)).grid(row=6,
                                                                                                           column=0)
 
-        tk.Label(botrightframe, text="Total Podiums", bg="light blue", fg="black", font=("Shanti", 14)).grid(row=7,
+        tk.Label(botrightframe, text="Total Podiums", bg="white", fg="black", font=("Shanti", 14)).grid(row=7,
                                                                                                              column=0)
 
         # 'back' button widget
@@ -278,7 +278,7 @@ class Application(tk.Tk):
         leftframe.pack(side="left", fill="both", expand=True, padx=10, pady=10)
 
         # Create and pack the label in the left frame
-        label = tk.Label(leftframe, text="Please Make A Selection", bg="light blue", fg="black", font=("Shanti", 14))
+        label = tk.Label(leftframe, text="Please Make A Selection", bg="white", fg="black", font=("Shanti", 14))
         label.pack(side="top", pady=20)
         # Create the scrollbar in the left frame
         scrollbar = tk.Scrollbar(leftframe)
@@ -305,27 +305,27 @@ class Application(tk.Tk):
         botrightframe = tk.Frame(self.frame3, bg="white", bd=5, relief=tk.SUNKEN)
         botrightframe.pack(side="top", fill=tk.X, padx=10, pady=10)
 
-        self.circuit_label_altitude = tk.Label(botrightframe, text="Altitude: ", bg="light blue", fg="black",
+        self.circuit_label_altitude = tk.Label(botrightframe, text="Altitude: ", bg="white", fg="black",
                                                font=("Shanti", 14))
         self.circuit_label_altitude.grid(row=0, column=0)
 
-        self.circuit_label_country = tk.Label(botrightframe, text="Country: ", bg="light blue", fg="black",
+        self.circuit_label_country = tk.Label(botrightframe, text="Country: ", bg="white", fg="black",
                                               font=("Shanti", 14))
         self.circuit_label_country.grid(row=1, column=0)
 
-        self.circuit_label_longitude = tk.Label(botrightframe, text="Longitude: ", bg="light blue", fg="black",
+        self.circuit_label_longitude = tk.Label(botrightframe, text="Longitude: ", bg="white", fg="black",
                                                 font=("Shanti", 14))
         self.circuit_label_longitude.grid(row=2, column=0)
 
-        self.circuit_label_latitude = tk.Label(botrightframe, text="Latitude: ", bg="light blue", fg="black",
+        self.circuit_label_latitude = tk.Label(botrightframe, text="Latitude: ", bg="white", fg="black",
                                                font=("Shanti", 14))
         self.circuit_label_latitude.grid(row=3, column=0)
 
-        self.circuit_label_wiki = tk.Label(botrightframe, text="Wiki Link: ", bg="light blue", fg="black",
+        self.circuit_label_wiki = tk.Label(botrightframe, text="Wiki Link: ", bg="white", fg="black",
                                            font=("Shanti", 14))
         self.circuit_label_wiki.grid(row=4, column=0)
 
-        self.circuit_label_fastestlap = tk.Label(botrightframe, text="Fastest Lap: ", bg="light blue", fg="black",
+        self.circuit_label_fastestlap = tk.Label(botrightframe, text="Fastest Lap: ", bg="white", fg="black",
                                                  font=("Shanti", 14))
         self.circuit_label_fastestlap.grid(row=5, column=0)
 
