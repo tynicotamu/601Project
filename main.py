@@ -68,11 +68,166 @@ class Application(tk.Tk):
         tk.Button(self.frame1, text="Mute", font=("Ubuntu", 12), bg="#28393a", fg="white", cursor="hand2",
                   activebackground="#badee2", activeforeground="black", command=self.toggle_music).pack(side='bottom',
                                                                                                         pady=20)
-
+    def fetchDriverList_db():
+        # Use context manager to ensure the connection is closed properly
+        with sqlite3.connect("data/f1stats.db") as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT surname || ', ' || forename FROM drivers")
+            names = [row[0] for row in cursor.fetchall()]
+        # Connection and cursor will be closed automatically here
+        print(names)
+        return names
+    
+    # Fetch the list of circuit names from the database
+    driverNames = fetchDriverList_db()
+    sortedDrivers = sorted(driverNames)
+        
     def load_frame2(self):
+
+        def on_select(event):
+            # Note that calling `curselection` returns a tuple of selected indices
+            selected_indices = event.widget.curselection()
+
+            def open_hyperlink(url):
+                webbrowser.open_new(url)
+
+            if selected_indices:  # Proceed only if something is selected
+                # Get the first selected index
+                index = selected_indices[0]
+                # Retrieve the text of the selected item
+                value = event.widget.get(index)
+                print(f"You selected item {index}: {value.split(',')[0]}")
+
+                conn = sqlite3.connect("data/f1stats.db")
+                cursor = conn.cursor()
+                error_string = "Altitude not available"
+
+                # Check if the query fetched a result
+                try:
+                    # Get nationality info for driver
+                    cursor.execute("SELECT nationality FROM drivers WHERE surname = ?", (value.split(',')[0],))
+                    nat_data = cursor.fetchone()
+                    # Load data
+                    nat = nat_data[0]
+                    nat_input = f"Nationality: {nat}"
+                    self.NatLabel.config(text=nat_input)
+                except sqlite3.Error as e:
+                    # If no altitude is found, set a default message
+                    self.NatLabel.config(text=error_string)
+
+                try:
+                    # Get the number for each driver. 
+                    cursor.execute("SELECT number FROM drivers WHERE surname = ?", (value.split(',')[0],))
+                    driverNum = cursor.fetchone()
+
+                    print(driverNum)
+                    driverNum = str(driverNum[0])
+                    print(driverNum)
+                    print(type(driverNum))
+                    try:
+                        driverNum = int(driverNum)
+                        driverNumInput = f"Number: {str(driverNum)}"
+                        self.NumLabel.config(text=driverNumInput)
+                    except:
+                        driverNumInput = f"Number: {'N/A'}"
+                        self.NumLabel.config(text=driverNumInput)
+
+                except sqlite3.Error as e:
+                    # If no altitude is found, set a default message
+                    self.NumLabel.config(text=error_string)
+
+                try:
+                    # Convert the altitude to float and format the output string
+                    cursor.execute("SELECT lng FROM circuits WHERE name = ?", (value,))
+                    longitude_data = cursor.fetchone()
+                    # Load data
+                    longitude = float(longitude_data[0])
+                    print('Test')
+                    print(longitude)
+                    longitude = f"Longitude: {longitude} degrees"
+                    self.circuit_label_longitude.config(text=longitude)
+
+                except sqlite3.Error as e:
+                    # If no altitude is found, set a default message
+                    self.circuit_label_country.config(text=error_string)
+
+                try:
+                    # Convert the altitude to float and format the output string
+                    cursor.execute("SELECT lat FROM circuits WHERE name = ?", (value,))
+                    latitude = cursor.fetchone()
+                    # Load data
+                    latitude = float(latitude[0])
+                    latitude = f"Latitude: {latitude} degrees"
+                    self.circuit_label_latitude.config(text=latitude)
+
+                except sqlite3.Error as e:
+                    # If no altitude is found, set a default message
+                    self.circuit_label_country.config(text=error_string)
+
+                try:
+                    # Execute the query to fetch the URL
+                    cursor.execute("SELECT url FROM circuits WHERE name = ?", (value,))
+                    url_data = cursor.fetchone()
+
+                    # Check if the query fetched a result
+                    if url_data and url_data[0]:
+                        # Extract the URL from the tuple
+                        url = url_data[0]
+                        print(f'URL fetched: {url}')
+
+                        # Set the label with the URL
+                        label_text = f"Link to URL"
+                        self.circuit_label_wiki.config(text=label_text, fg="blue", cursor="hand2")
+
+                        # Bind the label to open the hyperlink when clicked
+                        self.circuit_label_wiki.bind("<Button-1>", lambda e, link=url: open_hyperlink(link))
+
+                    else:
+                        self.circuit_label_wiki.config(text="URL not available")
+
+                    try:
+                        # Query to get the fastest lap time for a given circuit name from the new table or view
+                        cursor.execute("""
+                            SELECT fastest_lap_time
+                            FROM fastest_lap_per_circuit
+                            WHERE circuit_name = ?
+                        """, (value,))
+
+                        # Fetch the result
+                        result = cursor.fetchone()
+                        print("Fast Test")
+                        print(result)
+                        # If a result is found, extract the lap time and update the label
+                        if result and result[0] is not None:
+                            fastest_lap_time = result[0]
+                            print(f"Fastest Lap Time: {fastest_lap_time}")
+                            fastest_lap_time = round(fastest_lap_time / 1000, 2)
+                            self.circuit_label_fastestlap.config(text=f"Fastest Lap Time: {fastest_lap_time} seconds")
+                        else:
+                            self.circuit_label_fastestlap.config(text="No fastest lap time available")
+                    except sqlite3.Error as e:
+                        error_string = f"Database error: {e}"
+                        print(error_string)
+                        self.circuit_label_fastestlap.config(text=error_string)
+
+                    except sqlite3.Error as e:
+                        # If no altitude is found, set a default message
+                        self.circuit_label_country.config(text=error_string)
+
+                finally:
+                    # Close the connection
+                    conn.close()
+
         self.clear_widgets(self.frame1)
         # stack frame 2 above frame 1
         self.frame2.tkraise()
+
+        def populate_listbox_from_tuple(listbox, data_tuple):
+            # Clear the listbox
+            listbox.delete(0, tk.END)
+            # Insert items into the listbox
+            for item in data_tuple:
+                listbox.insert(tk.END, item)
 
         leftframe = tk.Frame(self.frame2, bg="white", bd=5, relief=tk.SUNKEN)
         leftframe.pack(side="left", fill="both", expand=True, padx=10, pady=10)
@@ -80,12 +235,15 @@ class Application(tk.Tk):
         (tk.Label(leftframe, text="Please Make A Selection", bg="white", fg="black", font=("Shanti", 14)).
          pack(side='top', pady=20))
 
-        self.scrollbar = tk.Scrollbar(leftframe)
-        self.scrollbar.pack(side=tk.RIGHT, fill='y')
+        scrollbar = tk.Scrollbar(leftframe)
+        scrollbar.pack(side=tk.RIGHT, fill='y')
 
-        self.listbox = tk.Listbox(leftframe, yscrollcommand=self.scrollbar.set, height=10)
-        self.listbox.pack(side='top', fill='both', expand=True)
-        self.listbox.config(yscrollcommand=self.scrollbar.set)
+        listbox = tk.Listbox(leftframe, yscrollcommand=scrollbar.set, height=10)
+        listbox.pack(side='top', fill='both', expand=True)
+        listbox.config(yscrollcommand=scrollbar.set)
+        listbox.bind('<<ListboxSelect>>', on_select)
+        # Ensure the scrollbar controls the listbox view
+        scrollbar.config(command=listbox.yview)
 
         toprightframe = tk.Frame(self.frame2, bg="white", bd=5, relief=tk.SUNKEN)
         toprightframe.pack(side="top", fill=tk.X, padx=10,
@@ -128,6 +286,9 @@ class Application(tk.Tk):
         tk.Button(toprightframe, text="BACK", font=("Ubuntu", 14), bg="#28393a", fg="white", cursor="hand2",
                   activebackground="#badee2",
                   activeforeground="black", command=lambda: self.load_frame1()).pack(pady=20)
+        
+        # Fetch data from database and populate the listbox
+        populate_listbox_from_tuple(listbox, self.sortedDrivers)
 
     def load_frame3(self):
         self.clear_widgets(self.frame1)

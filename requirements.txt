@@ -6,7 +6,6 @@ mkl-service >= 2.4.0
 numpy >= 1.21.5
 Pillow >= 10.0.2
 pyglet >= 1.5.16
-python >= 3.9.12
 six >= 1.16.0
 wincertstore >= 0.2
 pygame>=2.5.2
