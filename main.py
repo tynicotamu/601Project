@@ -119,11 +119,8 @@ class Application(tk.Tk):
                     # Get the number for each driver. 
                     cursor.execute("SELECT number FROM drivers WHERE surname = ?", (value.split(',')[0],))
                     driverNum = cursor.fetchone()
-
-                    print(driverNum)
                     driverNum = str(driverNum[0])
-                    print(driverNum)
-                    print(type(driverNum))
+
                     try:
                         driverNum = int(driverNum)
                         driverNumInput = f"Number: {str(driverNum)}"
@@ -137,32 +134,101 @@ class Application(tk.Tk):
                     self.NumLabel.config(text=error_string)
 
                 try:
-                    # Convert the altitude to float and format the output string
-                    cursor.execute("SELECT lng FROM circuits WHERE name = ?", (value,))
-                    longitude_data = cursor.fetchone()
-                    # Load data
-                    longitude = float(longitude_data[0])
-                    print('Test')
-                    print(longitude)
-                    longitude = f"Longitude: {longitude} degrees"
-                    self.circuit_label_longitude.config(text=longitude)
+                    # Get the number of pole positions for the driver. 
+                    cursor.execute("""
+                    SELECT COUNT(position) 
+                    FROM qualifying 
+                    INNER JOIN drivers ON qualifying.driverId = drivers.driverId 
+                    WHERE drivers.surname = ? AND position = 1
+                    GROUP BY drivers.surname""", (value.split(',')[0],))
+
+                    polePositions = cursor.fetchone()
+                    try:
+                        polePositions = f"Pole Positions: {polePositions[0]}"
+                    except:
+                        polePositions = f"Pole Positions: 0"
+                    self.PolesLabel.config(text=polePositions)
 
                 except sqlite3.Error as e:
                     # If no altitude is found, set a default message
-                    self.circuit_label_country.config(text=error_string)
+                    self.PolesLabel.config(text=error_string)
 
                 try:
-                    # Convert the altitude to float and format the output string
-                    cursor.execute("SELECT lat FROM circuits WHERE name = ?", (value,))
-                    latitude = cursor.fetchone()
-                    # Load data
-                    latitude = float(latitude[0])
-                    latitude = f"Latitude: {latitude} degrees"
-                    self.circuit_label_latitude.config(text=latitude)
+                    # Get the last win. 
+                    cursor.execute("""
+                    SELECT circuits.name, races.year
+                    FROM circuits 
+                    INNER JOIN races 
+                    ON circuits.circuitID = races.circuitId 
+                    INNER JOIN results
+                    ON races.raceId = results.raceId
+                    INNER JOIN drivers
+                    ON results.driverID = drivers.driverId     
+                    WHERE drivers.surname = ? AND position = 1
+                    ORDER BY races.date DESC
+                    """, (value.split(',')[0],))
+                    lastWin = cursor.fetchone()
+                    lastWinStr = f"Last Win: {lastWin[0]}, {lastWin[1]}"
+                    self.LastWinLabel.config(text=lastWinStr)
 
-                except sqlite3.Error as e:
-                    # If no altitude is found, set a default message
-                    self.circuit_label_country.config(text=error_string)
+                except:
+                    # If no win is found, set a default message
+                    self.LastWinLabel.config(text='Last Win: No Race Wins')
+
+                try:
+                    # Most won Circuit
+                    cursor.execute("""
+                    SELECT COUNT(circuits.name), circuits.name
+                    FROM circuits 
+                    INNER JOIN races 
+                    ON circuits.circuitID = races.circuitId 
+                    INNER JOIN results
+                    ON races.raceId = results.raceId
+                    INNER JOIN drivers
+                    ON results.driverID = drivers.driverId     
+                    WHERE drivers.surname = ? AND position = 1
+                    GROUP BY circuits.name
+                    ORDER BY COUNT(circuits.name) DESC
+                    """, (value.split(',')[0],))
+                    mostWon = cursor.fetchone()
+                    mostWonStr = f"Last Win: {mostWon[0]} Wins, {mostWon[1]}"
+                    self.MostWonLabel.config(text=mostWonStr)
+
+                except:
+                    # If no win is found, set a default message
+                    self.MostWonLabel.config(text='Most Won: No Race Wins')
+
+                try:
+                    # Total Wins
+                    cursor.execute("""
+                    SELECT COUNT(position) 
+                    FROM results 
+                    INNER JOIN drivers ON results.driverId = drivers.driverId 
+                    WHERE drivers.surname = ? AND position = 1
+                    GROUP BY drivers.surname""", (value.split(',')[0],))
+                    totalWins = cursor.fetchone()
+                    totalWinsStr = f"Total Wins: {totalWins[0]}"
+                    self.TotalWinsLabel.config(text=totalWinsStr)
+
+                except:
+                    # If no win is found, set a default message
+                    self.TotalWinsLabel.config(text='Total Wins: No Race Wins')
+
+                try:
+                    # Total Podiums
+                    cursor.execute("""
+                    SELECT COUNT(position) 
+                    FROM results 
+                    INNER JOIN drivers ON results.driverId = drivers.driverId 
+                    WHERE drivers.surname = ? AND position IN (1,2,3)
+                    GROUP BY drivers.surname""", (value.split(',')[0],))
+                    totalPods = cursor.fetchone()
+                    totalPodsStr = f"Total Podiums: {totalPods[0]}"
+                    self.PodLabel.config(text=totalPodsStr)
+
+                except:
+                    # If no win is found, set a default message
+                    self.PodLabel.config(text='Total Podiums: No Podiums')
 
                 try:
                     # Execute the query to fetch the URL
