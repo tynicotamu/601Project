@@ -191,7 +191,7 @@ class Application(tk.Tk):
                     ORDER BY COUNT(circuits.name) DESC
                     """, (value.split(',')[0],))
                     mostWon = cursor.fetchone()
-                    mostWonStr = f"Last Win: {mostWon[0]} Wins, {mostWon[1]}"
+                    mostWonStr = f"Most Won: {mostWon[0]} Wins, {mostWon[1]}"
                     self.MostWonLabel.config(text=mostWonStr)
 
                 except:
