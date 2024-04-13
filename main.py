@@ -167,11 +167,11 @@ class Application(tk.Tk):
                         self.CodeLabel.config(text=driverCodeInput)
                     else:
                         driverCodeInput = f"Code: {'N/A'}"
-                        self.CodeLabel.config(text=driverNumInput)
+                        self.CodeLabel.config(text=driverCodeInput)
 
                 except:
-                    driverCodeInput = f"Number: {'N/A'}"
-                    self.CodeLabel.config(text=driverNumInput)
+                    driverCodeInput = f"Code: {'N/A'}"
+                    self.CodeLabel.config(text=driverCodeInput)
 
                 try:
                     # Get the number of pole positions for the driver. 
@@ -294,14 +294,14 @@ class Application(tk.Tk):
                         print(f'URL fetched: {url}')
 
                         # Set the label with the URL
-                        label_text = f"Link to URL"
+                        label_text = f"Wiki Page"
                         self.urlLabel.config(text=label_text, fg="blue", cursor="hand2")
 
                         # Bind the label to open the hyperlink when clicked
                         self.urlLabel.bind("<Button-1>", lambda e, link=url: open_hyperlink(link))
 
                     else:
-                        self.urlLabel.config(text="URL not available")
+                        self.urlLabel.config(text="Wiki not available")
 
                 finally:
                     # Close the connection
@@ -362,7 +362,7 @@ class Application(tk.Tk):
                                 fg="black", font=("Shanti", 14))
         self.CodeLabel.grid(row=2, column=0, sticky='w')
 
-        self.PolesLabel = tk.Label(botrightframe, text="# Pole Positions:", bg="white",
+        self.PolesLabel = tk.Label(botrightframe, text="Pole Positions:", bg="white",
                                 fg="black", font=("Shanti", 14))
         self.PolesLabel.grid(row=3, column=0, sticky='w')
 
@@ -382,7 +382,7 @@ class Application(tk.Tk):
                                 fg="black", justify='left', font=("Shanti", 14))
         self.PodLabel.grid(row=7, column=0, sticky='w')
 
-        self.urlLabel = tk.Label(botrightframe, text="URL:", bg="white",
+        self.urlLabel = tk.Label(botrightframe, text="Wiki Page:", bg="white",
                                 fg="black", justify='left', font=("Shanti", 14))
         self.urlLabel.grid(row=8, column=0, sticky='w')
 
