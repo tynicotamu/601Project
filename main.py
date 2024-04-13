@@ -40,6 +40,30 @@ class Application(tk.Tk):
         else:
             mixer.music.set_volume(0.5)  # Unmute the music (restore volume)
 
+    def fetchDriverList_db(self):
+        # Use context manager to ensure the connection is closed properly
+        with sqlite3.connect("data/f1stats.db") as connection:
+            cursor = connection.cursor()
+            cursor.execute("""
+            SELECT surname || ', ' || forename 
+            FROM drivers""")
+            names = [row[0] for row in cursor.fetchall()]
+        # Connection and cursor will be closed automatically here
+        return names
+
+    def populate_listbox_from_tuple(self, list_box, data_tuple):
+            # Clear the listbox
+            list_box.delete(0, tk.END)
+            # Insert items into the listbox
+            for item in data_tuple:
+                list_box.insert(tk.END, item)
+
+    def filterDrivers(self):
+        strFilt = str(self.searchDriversEntry.get())
+        items = self.fetchDriverList_db()
+        filt_list = [x for x in items if strFilt.upper() in x.upper()]
+        self.populate_listbox_from_tuple(self.driverListbox, filt_list)
+
     def load_frame1(self):
         # Assuming clear_widgets is a method to remove widgets from a frame
         self.clear_widgets(self.frame2)
@@ -68,19 +92,7 @@ class Application(tk.Tk):
         tk.Button(self.frame1, text="Mute", font=("Ubuntu", 12), bg="#28393a", fg="white", cursor="hand2",
                   activebackground="#badee2", activeforeground="black", command=self.toggle_music).pack(side='bottom',
                                                                                                         pady=20)
-    def fetchDriverList_db():
-        # Use context manager to ensure the connection is closed properly
-        with sqlite3.connect("data/f1stats.db") as connection:
-            cursor = connection.cursor()
-            cursor.execute("SELECT surname || ', ' || forename FROM drivers")
-            names = [row[0] for row in cursor.fetchall()]
-        # Connection and cursor will be closed automatically here
-        print(names)
-        return names
-    
-    # Fetch the list of circuit names from the database
-    driverNames = fetchDriverList_db()
-    sortedDrivers = sorted(driverNames)
+
         
     def load_frame2(self):
 
@@ -96,7 +108,10 @@ class Application(tk.Tk):
                 index = selected_indices[0]
                 # Retrieve the text of the selected item
                 value = event.widget.get(index)
-                print(f"You selected item {index}: {value.split(',')[0]}")
+                firstName = value.split(',')[1].strip()
+                lastName = value.split(',')[0].strip()
+
+                print(f"You selected Driver {index}: {lastName}, {firstName}")
 
                 conn = sqlite3.connect("data/f1stats.db")
                 cursor = conn.cursor()
@@ -105,33 +120,58 @@ class Application(tk.Tk):
                 # Check if the query fetched a result
                 try:
                     # Get nationality info for driver
-                    cursor.execute("SELECT nationality FROM drivers WHERE surname = ?", (value.split(',')[0],))
+                    cursor.execute("""
+                    SELECT nationality 
+                    FROM drivers 
+                    WHERE surname = ? and forename = ?
+                    """, (lastName, firstName))
+
                     nat_data = cursor.fetchone()
                     # Load data
                     nat = nat_data[0]
                     nat_input = f"Nationality: {nat}"
                     self.NatLabel.config(text=nat_input)
+
                 except sqlite3.Error as e:
                     # If no altitude is found, set a default message
                     self.NatLabel.config(text=error_string)
 
                 try:
                     # Get the number for each driver. 
-                    cursor.execute("SELECT number FROM drivers WHERE surname = ?", (value.split(',')[0],))
-                    driverNum = cursor.fetchone()
-                    driverNum = str(driverNum[0])
+                    cursor.execute("""
+                    SELECT number 
+                    FROM drivers 
+                    WHERE surname = ? and forename = ?
+                    """, (lastName, firstName))
 
-                    try:
-                        driverNum = int(driverNum)
-                        driverNumInput = f"Number: {str(driverNum)}"
-                        self.NumLabel.config(text=driverNumInput)
-                    except:
-                        driverNumInput = f"Number: {'N/A'}"
-                        self.NumLabel.config(text=driverNumInput)
+                    driverNum = cursor.fetchone()[0]
+                    driverNum = int(driverNum)
+                    driverNumInput = f"Number: {str(driverNum)}"
+                    self.NumLabel.config(text=driverNumInput)
+                except:
+                    driverNumInput = f"Number: {'N/A'}"
+                    self.NumLabel.config(text=driverNumInput)
 
-                except sqlite3.Error as e:
-                    # If no altitude is found, set a default message
-                    self.NumLabel.config(text=error_string)
+                try:
+                    # Get the driver code. 
+                    cursor.execute("""
+                    SELECT code 
+                    FROM drivers 
+                    WHERE surname = ? and forename = ?
+                    """, (lastName, firstName))
+
+                    driverCode = cursor.fetchone()[0]
+                    driverCode = str(driverCode)
+                    if len(driverCode) == 3:
+                        driverCodeInput = f"Code: {(driverCode)}"
+                        self.CodeLabel.config(text=driverCodeInput)
+                    else:
+                        driverCodeInput = f"Code: {'N/A'}"
+                        self.CodeLabel.config(text=driverNumInput)
+
+                except:
+                    driverCodeInput = f"Number: {'N/A'}"
+                    self.CodeLabel.config(text=driverNumInput)
 
                 try:
                     # Get the number of pole positions for the driver. 
@@ -139,8 +179,9 @@ class Application(tk.Tk):
                     SELECT COUNT(position) 
                     FROM qualifying 
                     INNER JOIN drivers ON qualifying.driverId = drivers.driverId 
-                    WHERE drivers.surname = ? AND position = 1
-                    GROUP BY drivers.surname""", (value.split(',')[0],))
+                    WHERE surname = ? and forename = ? AND position = 1
+                    GROUP BY drivers.surname
+                    """, (lastName, firstName))
 
                     polePositions = cursor.fetchone()
                     try:
@@ -164,9 +205,10 @@ class Application(tk.Tk):
                     ON races.raceId = results.raceId
                     INNER JOIN drivers
                     ON results.driverID = drivers.driverId     
-                    WHERE drivers.surname = ? AND position = 1
+                    WHERE surname = ? and forename = ? AND position = 1
                     ORDER BY races.date DESC
-                    """, (value.split(',')[0],))
+                    """, (lastName, firstName))
+
                     lastWin = cursor.fetchone()
                     lastWinStr = f"Last Win: {lastWin[0]}, {lastWin[1]}"
                     self.LastWinLabel.config(text=lastWinStr)
@@ -186,10 +228,11 @@ class Application(tk.Tk):
                     ON races.raceId = results.raceId
                     INNER JOIN drivers
                     ON results.driverID = drivers.driverId     
-                    WHERE drivers.surname = ? AND position = 1
+                    WHERE surname = ? and forename = ? AND position = 1
                     GROUP BY circuits.name
                     ORDER BY COUNT(circuits.name) DESC
-                    """, (value.split(',')[0],))
+                    """, (lastName, firstName))
+
                     mostWon = cursor.fetchone()
                     mostWonStr = f"Most Won: {mostWon[0]} Wins, {mostWon[1]}"
                     self.MostWonLabel.config(text=mostWonStr)
@@ -204,8 +247,10 @@ class Application(tk.Tk):
                     SELECT COUNT(position) 
                     FROM results 
                     INNER JOIN drivers ON results.driverId = drivers.driverId 
-                    WHERE drivers.surname = ? AND position = 1
-                    GROUP BY drivers.surname""", (value.split(',')[0],))
+                    WHERE surname = ? and forename = ? AND position = 1
+                    GROUP BY drivers.surname
+                    """, (lastName, firstName))
+
                     totalWins = cursor.fetchone()
                     totalWinsStr = f"Total Wins: {totalWins[0]}"
                     self.TotalWinsLabel.config(text=totalWinsStr)
@@ -220,8 +265,10 @@ class Application(tk.Tk):
                     SELECT COUNT(position) 
                     FROM results 
                     INNER JOIN drivers ON results.driverId = drivers.driverId 
-                    WHERE drivers.surname = ? AND position IN (1,2,3)
-                    GROUP BY drivers.surname""", (value.split(',')[0],))
+                    WHERE surname = ? and forename = ? AND position IN (1,2,3)
+                    GROUP BY drivers.surname
+                    """, (lastName, firstName))
+
                     totalPods = cursor.fetchone()
                     totalPodsStr = f"Total Podiums: {totalPods[0]}"
                     self.PodLabel.config(text=totalPodsStr)
@@ -232,7 +279,12 @@ class Application(tk.Tk):
 
                 try:
                     # Execute the query to fetch the URL
-                    cursor.execute("SELECT url FROM circuits WHERE name = ?", (value,))
+                    cursor.execute("""
+                    SELECT url 
+                    FROM drivers 
+                    WHERE surname = ? and forename = ?
+                    """, (lastName, firstName))
+
                     url_data = cursor.fetchone()
 
                     # Check if the query fetched a result
@@ -243,42 +295,13 @@ class Application(tk.Tk):
 
                         # Set the label with the URL
                         label_text = f"Link to URL"
-                        self.circuit_label_wiki.config(text=label_text, fg="blue", cursor="hand2")
+                        self.urlLabel.config(text=label_text, fg="blue", cursor="hand2")
 
                         # Bind the label to open the hyperlink when clicked
-                        self.circuit_label_wiki.bind("<Button-1>", lambda e, link=url: open_hyperlink(link))
+                        self.urlLabel.bind("<Button-1>", lambda e, link=url: open_hyperlink(link))
 
                     else:
-                        self.circuit_label_wiki.config(text="URL not available")
-
-                    try:
-                        # Query to get the fastest lap time for a given circuit name from the new table or view
-                        cursor.execute("""
-                            SELECT fastest_lap_time
-                            FROM fastest_lap_per_circuit
-                            WHERE circuit_name = ?
-                        """, (value,))
-
-                        # Fetch the result
-                        result = cursor.fetchone()
-                        print("Fast Test")
-                        print(result)
-                        # If a result is found, extract the lap time and update the label
-                        if result and result[0] is not None:
-                            fastest_lap_time = result[0]
-                            print(f"Fastest Lap Time: {fastest_lap_time}")
-                            fastest_lap_time = round(fastest_lap_time / 1000, 2)
-                            self.circuit_label_fastestlap.config(text=f"Fastest Lap Time: {fastest_lap_time} seconds")
-                        else:
-                            self.circuit_label_fastestlap.config(text="No fastest lap time available")
-                    except sqlite3.Error as e:
-                        error_string = f"Database error: {e}"
-                        print(error_string)
-                        self.circuit_label_fastestlap.config(text=error_string)
-
-                    except sqlite3.Error as e:
-                        # If no altitude is found, set a default message
-                        self.circuit_label_country.config(text=error_string)
+                        self.urlLabel.config(text="URL not available")
 
                 finally:
                     # Close the connection
@@ -287,13 +310,6 @@ class Application(tk.Tk):
         self.clear_widgets(self.frame1)
         # stack frame 2 above frame 1
         self.frame2.tkraise()
-
-        def populate_listbox_from_tuple(listbox, data_tuple):
-            # Clear the listbox
-            listbox.delete(0, tk.END)
-            # Insert items into the listbox
-            for item in data_tuple:
-                listbox.insert(tk.END, item)
 
         leftframe = tk.Frame(self.frame2, bg="white", bd=5, relief=tk.SUNKEN)
         leftframe.pack(side="left", fill="both", expand=True, padx=10, pady=10)
@@ -304,21 +320,35 @@ class Application(tk.Tk):
         scrollbar = tk.Scrollbar(leftframe)
         scrollbar.pack(side=tk.RIGHT, fill='y')
 
-        listbox = tk.Listbox(leftframe, yscrollcommand=scrollbar.set, height=10)
-        listbox.pack(side='top', fill='both', expand=True)
-        listbox.config(yscrollcommand=scrollbar.set)
-        listbox.bind('<<ListboxSelect>>', on_select)
+        self.driverListbox = tk.Listbox(leftframe, yscrollcommand=scrollbar.set, height=10)
+        self.driverListbox.pack(side='top', fill='both', expand=True)
+        self.driverListbox.config(yscrollcommand=scrollbar.set)
+        self.driverListbox.bind('<<ListboxSelect>>', on_select)
         # Ensure the scrollbar controls the listbox view
-        scrollbar.config(command=listbox.yview)
+        scrollbar.config(command=self.driverListbox.yview)
 
         toprightframe = tk.Frame(self.frame2, bg="white", bd=5, relief=tk.SUNKEN)
         toprightframe.pack(side="top", fill=tk.X, padx=10,
                            pady=10)  # Change the packing to `side="top"` and `fill=tk.X`
-        tk.Button(toprightframe, text="Search", font=("Ubuntu", 14), bg="#28393a", fg="white", cursor="hand2",
-                  activebackground="#badee2", activeforeground="black").pack(side='top', pady=10, padx=50)
+        
+        # Search Button
+        driverSearchButton = tk.Button(toprightframe, text="Search", font=("Ubuntu", 14), bg="#28393a", fg="white", cursor="hand2",
+                  activebackground="#badee2", activeforeground="black", command=self.filterDrivers)
+        driverSearchButton.grid(row = 0, column = 0, pady=10, padx=10)
+        # command = filterDrivers
+
+        # Search Entry Field
+        self.searchDriversEntry = tk.Entry(toprightframe, font=("Ubuntu", 14), fg = 'white', bg = '#FF1801')
+        self.searchDriversEntry.grid(row = 0, column=1, padx = 10, pady=10)
+
+        # 'back' button widget
+        backButton = tk.Button(toprightframe, text="BACK", font=("Ubuntu", 14), bg="#28393a", fg="white", cursor="hand2",
+                  activebackground="#badee2",
+                  activeforeground="black", command=lambda: self.load_frame1())
+        backButton.grid(row = 1, column=0, columnspan=2, padx=10, pady=10)
 
         botrightframe = tk.Frame(self.frame2, bg="white", bd=5, relief=tk.SUNKEN)
-        botrightframe.pack(side="top", fill='both', expand=1, padx=10, pady=10)
+        botrightframe.pack(side="top", fill='both', expand=0, padx=10, pady=10)
 
         self.NatLabel = tk.Label(botrightframe, text="Nationality:", bg="white",
                                 fg="black", font=("Shanti", 14))
@@ -327,6 +357,10 @@ class Application(tk.Tk):
         self.NumLabel = tk.Label(botrightframe, text="Number:", bg="white",
                                 fg="black", font=("Shanti", 14))
         self.NumLabel.grid(row=1, column=0, sticky='w')
+
+        self.CodeLabel = tk.Label(botrightframe, text="Code:", bg="white",
+                                fg="black", font=("Shanti", 14))
+        self.CodeLabel.grid(row=2, column=0, sticky='w')
 
         self.PolesLabel = tk.Label(botrightframe, text="# Pole Positions:", bg="white",
                                 fg="black", font=("Shanti", 14))
@@ -348,13 +382,15 @@ class Application(tk.Tk):
                                 fg="black", justify='left', font=("Shanti", 14))
         self.PodLabel.grid(row=7, column=0, sticky='w')
 
-        # 'back' button widget
-        tk.Button(toprightframe, text="BACK", font=("Ubuntu", 14), bg="#28393a", fg="white", cursor="hand2",
-                  activebackground="#badee2",
-                  activeforeground="black", command=lambda: self.load_frame1()).pack(pady=20)
-        
+        self.urlLabel = tk.Label(botrightframe, text="URL:", bg="white",
+                                fg="black", justify='left', font=("Shanti", 14))
+        self.urlLabel.grid(row=8, column=0, sticky='w')
+
+        # Fetch the list of circuit names from the database
+        driverNames = self.fetchDriverList_db()
+        self.sortedDrivers = sorted(driverNames)
         # Fetch data from database and populate the listbox
-        populate_listbox_from_tuple(listbox, self.sortedDrivers)
+        self.populate_listbox_from_tuple(self.driverListbox, self.sortedDrivers)
 
     def load_frame3(self):
         self.clear_widgets(self.frame1)
