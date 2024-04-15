@@ -11,6 +11,7 @@ class Application(tk.Tk):
 
     def __init__(self):
         super().__init__()
+        self.circuitlistbox = None
         self.sorted_circuits = None
         self.title("F1 Metrics")
         self.eval("tk::PlaceWindow . center")
@@ -51,6 +52,16 @@ class Application(tk.Tk):
         # Connection and cursor will be closed automatically here
         return names
 
+    def fetchcircuitlist_db(self):
+        # Use context manager to ensure the connection is closed properly
+        with sqlite3.connect("data/f1stats.db") as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT name FROM circuits")
+            names = [row[0] for row in cursor.fetchall()]
+        # Connection and cursor will be closed automatically here
+        print(names)
+        return names
+
     def populate_listbox_from_tuple(self, list_box, data_tuple):
             # Clear the listbox
             list_box.delete(0, tk.END)
@@ -63,6 +74,12 @@ class Application(tk.Tk):
         items = self.fetchDriverList_db()
         filt_list = [x for x in items if strFilt.upper() in x.upper()]
         self.populate_listbox_from_tuple(self.driverListbox, filt_list)
+
+    def filterCircuits(self):
+        strFilt = str(self.searchCircuitEntry.get())
+        items = self.fetchcircuitlist_db()
+        filt_list = [x for x in items if strFilt.upper() in x.upper()]
+        self.populate_listbox_from_tuple(self.circuitlistbox, filt_list)
 
     def load_frame1(self):
         # Assuming clear_widgets is a method to remove widgets from a frame
@@ -397,18 +414,10 @@ class Application(tk.Tk):
         # stack frame 2 above frame 1
         self.frame3.tkraise()
 
-        def fetchcircuitlist_db():
-            # Use context manager to ensure the connection is closed properly
-            with sqlite3.connect("data/f1stats.db") as connection:
-                cursor = connection.cursor()
-                cursor.execute("SELECT name FROM circuits")
-                names = [row[0] for row in cursor.fetchall()]
-            # Connection and cursor will be closed automatically here
-            print(names)
-            return names
+
 
         # Fetch the list of circuit names from the database
-        circuit_names = fetchcircuitlist_db()
+        circuit_names = self.fetchcircuitlist_db()
         self.sorted_circuits = sorted(circuit_names)
 
         def populate_listbox_from_tuple(listbox, data_tuple):
@@ -556,22 +565,29 @@ class Application(tk.Tk):
         scrollbar.pack(side=tk.RIGHT, fill='y')
 
         # Create the listbox and associate it with the scrollbar
-        listbox = tk.Listbox(leftframe, yscrollcommand=scrollbar.set, height=10)
-        listbox.pack(side="top", fill="both", expand=True)
-        listbox.config(yscrollcommand=scrollbar.set)
-        listbox.bind('<<ListboxSelect>>', on_select)
+        self.circuitlistbox = tk.Listbox(leftframe, yscrollcommand=scrollbar.set, height=10)
+        self.circuitlistbox.pack(side="top", fill="both", expand=True)
+        self.circuitlistbox.config(yscrollcommand=scrollbar.set)
+        self.circuitlistbox.bind('<<ListboxSelect>>', on_select)
         # Ensure the scrollbar controls the listbox view
-        scrollbar.config(command=listbox.yview)
+        scrollbar.config(command=self.circuitlistbox.yview)
 
         # Fetch data from database and populate the listbox
         names_tuple = self.sorted_circuits
-        populate_listbox_from_tuple(listbox, names_tuple)
+        populate_listbox_from_tuple(self.circuitlistbox, names_tuple)
 
         toprightframe = tk.Frame(self.frame3, bg="white", bd=5, relief=tk.SUNKEN)
-        toprightframe.pack(side="top", fill=tk.X, padx=10,
-                           pady=10)  # Change the packing to `side="top"` and `fill=tk.X`
+        toprightframe.pack(side="top", fill=tk.X, padx=10, pady=10)  # Change the packing to `side="top"` and `fill=tk.X`
+
+        self.searchCircuitEntry = tk.Entry(toprightframe, font=("Ubuntu", 14), fg = 'white', bg = '#FF1801')
+        self.searchCircuitEntry.grid(row = 0, column=2, padx = 10, pady=10)
+
         tk.Button(toprightframe, text="Search", font=("Ubuntu", 14), bg="#28393a", fg="white", cursor="hand2",
-                  activebackground="#badee2", activeforeground="black").pack(side='top', pady=10, padx=50)
+                  activebackground="#badee2", activeforeground="black", command=self.filterCircuits).grid(row=0, column=1, padx = 10, pady=10)
+
+        tk.Button(toprightframe, text="BACK", font=("Ubuntu", 14), bg="#28393a", fg="white", cursor="hand2",
+                  activebackground="#badee2",
+                  activeforeground="black", command=lambda: self.load_frame1()).grid(row=2, column=1, columnspan=2, padx = 10, pady=10)
 
         botrightframe = tk.Frame(self.frame3, bg="white", bd=5, relief=tk.SUNKEN)
         botrightframe.pack(side="top", fill=tk.X, padx=10, pady=10)
@@ -601,13 +617,12 @@ class Application(tk.Tk):
         self.circuit_label_fastestlap.grid(row=5, column=0)
 
         # 'back' button widget
-        tk.Button(toprightframe, text="BACK", font=("Ubuntu", 14), bg="#28393a", fg="white", cursor="hand2",
-                  activebackground="#badee2",
-                  activeforeground="black", command=lambda: self.load_frame1()).pack(pady=20)
+
 
     # def clear_widgets(self, frame):
     #     for widget in frame.winfo_children():
     #         widget.destroy()
+
 
 
 if __name__ == "__main__":
